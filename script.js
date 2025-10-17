@@ -254,28 +254,63 @@
 
         // Initialize the application
         init();
-        
-        function exportTasksToPDF() {
+function exportTasksToPDF() {
     const { jsPDF } = window.jspdf;
-    const doc = new jsPDF();
+    const doc = new jsPDF('p', 'mm', 'a4');
 
-    doc.setFontSize(18);
-    doc.text("Todo List", 14, 20);
+    // Title
+    doc.setFontSize(20);
+    doc.setFont(undefined, 'bold');
+    doc.text("📋 Todo List", 14, 20);
 
-    doc.setFontSize(12);
+    // Add generation date
+    doc.setFontSize(10);
+    doc.setFont(undefined, 'normal');
+    const dateStr = new Date().toLocaleString();
+    doc.text(`Generated on: ${dateStr}`, 14, 28);
 
-    let y = 30; // initial y position
+    // Table headers
+    const headers = ["#", "Task", "Status", "Due Date", "Priority", "Category"];
+    const colWidths = [10, 70, 30, 30, 20, 30];
+    let startY = 35;
 
+    // Draw headers
+    doc.setFont(undefined, 'bold');
+    let x = 14;
+    headers.forEach((header, i) => {
+        doc.text(header, x, startY);
+        x += colWidths[i];
+    });
+
+    // Draw tasks
+    doc.setFont(undefined, 'normal');
+    let y = startY + 7;
     tasks.forEach((task, index) => {
-        const status = task.completed ? "✔️ Completed" : "❌ Pending";
+        const status = task.completed ? "✔ Completed" : "❌ Pending";
         const due = task.dueDate ? formatDate(task.dueDate) : "No due date";
-        const categoryText = task.category ? task.category : "No category";
+        const priorityText = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
+        const categoryText = task.category ? task.category : "None";
 
-        const taskText = `${index + 1}. ${task.text} | ${status} | Due: ${due} | Category: ${categoryText}`;
-        doc.text(taskText, 14, y);
-        y += 10;
+        let x = 14;
+        const row = [
+            (index + 1).toString(),
+            task.text,
+            status,
+            due,
+            priorityText,
+            categoryText
+        ];
 
-        // Page break if needed
+        row.forEach((cell, i) => {
+            // Wrap text if too long
+            const textLines = doc.splitTextToSize(cell, colWidths[i] - 2);
+            doc.text(textLines, x, y);
+            x += colWidths[i];
+        });
+
+        y += 7 * Math.max(1, doc.splitTextToSize(task.text, colWidths[1] - 2).length);
+
+        // Page break
         if (y > 280) {
             doc.addPage();
             y = 20;
