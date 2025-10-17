@@ -10,6 +10,7 @@
         const searchInput = document.getElementById('searchInput');
         const taskCounter = document.getElementById('taskCounter');
         const clearCompletedBtn = document.getElementById('clearCompletedBtn');
+        const exportPdfBtn = document.getElementById('exportPdfBtn');
 
         // Set minimum date to today
         dueDate.min = new Date().toISOString().split('T')[0];
@@ -253,3 +254,36 @@
 
         // Initialize the application
         init();
+        
+        function exportTasksToPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF();
+
+    doc.setFontSize(18);
+    doc.text("Todo List", 14, 20);
+
+    doc.setFontSize(12);
+
+    let y = 30; // initial y position
+
+    tasks.forEach((task, index) => {
+        const status = task.completed ? "✔️ Completed" : "❌ Pending";
+        const due = task.dueDate ? formatDate(task.dueDate) : "No due date";
+        const categoryText = task.category ? task.category : "No category";
+
+        const taskText = `${index + 1}. ${task.text} | ${status} | Due: ${due} | Category: ${categoryText}`;
+        doc.text(taskText, 14, y);
+        y += 10;
+
+        // Page break if needed
+        if (y > 280) {
+            doc.addPage();
+            y = 20;
+        }
+    });
+
+    doc.save(`Todo_List_${new Date().toISOString().split('T')[0]}.pdf`);
+}
+
+// Add event listener
+exportPdfBtn.addEventListener('click', exportTasksToPDF);
