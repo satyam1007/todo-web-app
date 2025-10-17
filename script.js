@@ -257,26 +257,35 @@
 function exportTasksToPDF() {
     const { jsPDF } = window.jspdf;
     const doc = new jsPDF('p', 'mm', 'a4');
-
+    
+    // Page setup
+    const margin = 14;
+    const pageWidth = doc.internal.pageSize.getWidth();
+    
     // Title
-    doc.setFontSize(20);
+    doc.setFontSize(22);
     doc.setFont(undefined, 'bold');
-    doc.text("📋 Todo List", 14, 20);
+    doc.text("📋 Todo List", margin, 20);
 
-    // Add generation date
+    // Generation date
     doc.setFontSize(10);
     doc.setFont(undefined, 'normal');
     const dateStr = new Date().toLocaleString();
-    doc.text(`Generated on: ${dateStr}`, 14, 28);
+    doc.text(`Generated on: ${dateStr}`, margin, 28);
 
     // Table headers
     const headers = ["#", "Task", "Status", "Due Date", "Priority", "Category"];
-    const colWidths = [10, 70, 30, 30, 20, 30];
+    const colWidths = [10, 80, 25, 25, 20, 30];
     let startY = 35;
 
-    // Draw headers
+    // Draw header background
+    doc.setFillColor(63, 81, 181); // Indigo header
+    doc.rect(margin - 2, startY - 5, pageWidth - 2 * margin + 4, 8, 'F');
+
+    // Header text
+    doc.setTextColor(255, 255, 255);
     doc.setFont(undefined, 'bold');
-    let x = 14;
+    let x = margin;
     headers.forEach((header, i) => {
         doc.text(header, x, startY);
         x += colWidths[i];
@@ -284,14 +293,22 @@ function exportTasksToPDF() {
 
     // Draw tasks
     doc.setFont(undefined, 'normal');
+    doc.setTextColor(0, 0, 0);
     let y = startY + 7;
+    
     tasks.forEach((task, index) => {
         const status = task.completed ? "✔ Completed" : "❌ Pending";
         const due = task.dueDate ? formatDate(task.dueDate) : "No due date";
         const priorityText = task.priority.charAt(0).toUpperCase() + task.priority.slice(1);
         const categoryText = task.category ? task.category : "None";
 
-        let x = 14;
+        // Alternate row background
+        if (index % 2 === 0) {
+            doc.setFillColor(240, 240, 240); // light gray
+            doc.rect(margin - 2, y - 5, pageWidth - 2 * margin + 4, 7, 'F');
+        }
+
+        let x = margin;
         const row = [
             (index + 1).toString(),
             task.text,
@@ -302,7 +319,6 @@ function exportTasksToPDF() {
         ];
 
         row.forEach((cell, i) => {
-            // Wrap text if too long
             const textLines = doc.splitTextToSize(cell, colWidths[i] - 2);
             doc.text(textLines, x, y);
             x += colWidths[i];
@@ -317,6 +333,16 @@ function exportTasksToPDF() {
         }
     });
 
+    // Add footer
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(120);
+        doc.text(`Page ${i} of ${pageCount}`, pageWidth / 2, 290, { align: 'center' });
+    }
+
+    // Save PDF
     doc.save(`Todo_List_${new Date().toISOString().split('T')[0]}.pdf`);
 }
 
