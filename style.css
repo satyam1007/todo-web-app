@@ -113,6 +113,10 @@
         .add-task-container:hover {
             box-shadow: var(--shadow-hover);
         }
+        
+        #exportPdfBtn{
+          margin-bottom: 5px;
+        }
 
         .task-inputs {
     display: flex;
@@ -234,7 +238,7 @@ input, select, button {
 
         .filter-btn {
             background-color: transparent;
-            color: var(--text-color);
+            color: white;
             border: 2px solid var(--border-color);
             padding: 8px 16px;
             border-radius: 20px;
@@ -245,7 +249,6 @@ input, select, button {
 
         .filter-btn:hover {
             border-color: var(--primary-color);
-            color: var(--primary-color);
             transform: translateY(-1px);
         }
 
